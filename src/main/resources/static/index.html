@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmployeeApp</title>
+    <style>
+        .container {
+            display: flex;
+        }
+
+        .form-section {
+            flex: 1;
+            width: 100%;
+        }
+
+        .employee-section {
+            flex: 2;
+            width: 100%;
+        }
+
+        table {
+            width: 75%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        input[type="text"] {
+            width: 200px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>EMPLOYEE APP</h1>
+    <h2>Por favor, ingrese los datos del empleado...</h2>
+    <h3>Si desea modificar los datos de un empleado, ingrese el respectivo ID!</h3>
+
+    <div class="container">
+        <div class="form-section">
+            <form id="employeeForm">
+                <table cellspacing="3" cellpadding="3">
+                    <tr>
+                        <td align="right">ID:</td>
+                        <td><input type="text" name="id"></td>
+                    </tr>
+                    <tr>
+                        <td align="right">Nombre:</td>
+                        <td><input type="text" name="name"></td>
+                    </tr>
+                    <tr>
+                        <td align="right">Email:</td>
+                        <td><input type="text" name="email"></td>
+                    </tr>
+                    <tr>
+                        <td align="right">Número:</td>
+                        <td><input type="text" name="phone"></td>
+                    </tr>
+                </table>
+                <input type="submit" value="Añadir || Guardar Cambios">
+            </form>
+        </div>
+
+        <div class="employee-section">
+            <h2>Lista de Empleados</h2>
+            <input type="text" id="searchInput" placeholder="Buscar empleado..." onkeyup="filterEmployees()">
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Número</th>
+                    </tr>
+                </thead>
+                <tbody id="employee-list">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('employeeForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+        
+            const formData = new FormData(this);
+        
+            fetch('/employeeapp/save', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error saving employee');
+                }
+                return response.text();
+            })
+            .then(() => {
+                loadEmployees();
+            })
+            .catch(error => {
+                console.error('Error saving employee:', error);
+            });
+        });
+
+        function deleteEmployee(id) {
+            fetch(`/employeeapp/deletebyid?id=${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error deleting employee');
+                }
+                loadEmployees();
+            })
+            .catch(error => {
+                console.error('Error deleting employee:', error);
+            });
+        }
+
+        function loadEmployees() {
+            fetch('http://localhost:12080/employeeapp/findall')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error fetching employee data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const employeeList = document.getElementById('employee-list');
+                    employeeList.innerHTML = '';
+                    data.forEach(employee => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><button onclick="deleteEmployee('${employee.id}')">X</button></td>
+                            <td>${employee.id}</td>
+                            <td>${employee.name}</td>
+                            <td>${employee.email}</td>
+                            <td>${employee.phone}</td>
+                        `;
+                        employeeList.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading employees:', error);
+                });
+        }
+
+        function filterEmployees() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const tableRows = document.getElementById('employee-list').getElementsByTagName('tr');
+
+            for (let i = 0; i < tableRows.length; i++) {
+                const rowText = tableRows[i].textContent.toLowerCase();
+                tableRows[i].style.display = rowText.includes(input) ? '' : 'none';
+            }
+        }
+
+        window.onload = loadEmployees;
+    </script>
+</body>
+
+</html>
