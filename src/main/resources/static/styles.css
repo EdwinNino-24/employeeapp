@@ -1,0 +1,32 @@
+.container {
+    display: flex;
+}
+
+.form-section {
+    flex: 1;
+    width: 100%;
+}
+
+.employee-section {
+    flex: 2;
+    width: 100%;
+}
+
+table {
+    width: 75%;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+input[type="text"] {
+    width: 200px;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 5px 10px;
+}
